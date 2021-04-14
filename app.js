@@ -63,15 +63,11 @@ app.get('/campgrounds/new', (req, res) =>
 
 app.post('/campgrounds', async (req, res) =>
 {
-    try
-    {
-        const campground = new Campground(req.body.campground)
+   
+    const campground = new Campground(req.body.campground)
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`)
-    } catch (e)
-    {
-        console.log(e)
-   }
+     
 })
 
 app.get('/campgrounds/:id', async (req, res) =>
