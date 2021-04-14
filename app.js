@@ -2,14 +2,21 @@ const express = require('express');
 const app = express();
 const path = require('path')
 const mongoose = require('mongoose');
+const ejsMate = require('ejs-mate')
+
 const methodOverride = require("method-override")
 const Campground = require('./models/campground')
+
+
+
 
 mongoose.connect('mongodb://localhost:27017/campmate', {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true
 })
+
+
 
 const db = mongoose.connection;
 //checking for errors on mongoose connection to mongo
@@ -19,8 +26,8 @@ db.once("open", () =>
     console.log("Database Connected")
 })
 
-
-
+//using ejs engine instead of default express engine
+app.engine('ejs', ejsMate);
 //setting our view engine to ejs
 app.set('view engine', 'ejs')
 //joining our views path to our working directory, establishing an absolute path to views
@@ -28,6 +35,7 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.use(express.urlencoded({extended: true}))
 app.use(methodOverride('_method'));
+
 
 app.get('/', (req, res) =>
 {
@@ -38,8 +46,14 @@ app.get('/', (req, res) =>
 
 app.get('/campgrounds', async (req, res) =>
 {
-    const campgrounds = await Campground.find({});
+    try
+    {
+        const campgrounds = await Campground.find({});
     res.render("campgrounds/index", {campgrounds})
+    } catch (e)
+    {
+        console.log(e)
+    }
 })
 
 app.get('/campgrounds/new', (req, res) =>
@@ -49,23 +63,41 @@ app.get('/campgrounds/new', (req, res) =>
 
 app.post('/campgrounds', async (req, res) =>
 {
-    const campground = new Campground(req.body.campground)
+    try
+    {
+        const campground = new Campground(req.body.campground)
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`)
+    } catch (e)
+    {
+        console.log(e)
+   }
 })
 
 app.get('/campgrounds/:id', async (req, res) =>
 {
-    const id = req.params.id;
+    try
+    {
+        const id = req.params.id;
     const campground = await Campground.findById(id);
     res.render('campgrounds/show', {campground})
+    } catch (e)
+    {
+        console.log(e)
+   }
 })
 
 app.get('/campgrounds/:id/edit', async (req, res) =>
 {
-    const id = req.params.id;
+    try
+    {
+        const id = req.params.id;
     const campground = await Campground.findById(id);
     res.render('campgrounds/edit', {campground})
+    } catch (e)
+    {
+        console.log(e)
+    }
 })
 
 //put route through methodOverride on form, with POST method
@@ -79,10 +111,18 @@ app.put('/campgrounds/:id', async (req, res) =>
 
 
 app.delete('/campgrounds/:id', async (req, res)=> {
-    const { id } = req.params;
+    try
+    {
+        const { id } = req.params;
     await Campground.findByIdAndDelete(id, {useFindAndModify: false})
     res.redirect('/campgrounds')
+    } catch (e)
+    {
+        console.log(e)
+    }
 })
+
+
 
 app.listen(3000, () =>
 {
