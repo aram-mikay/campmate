@@ -2,12 +2,13 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const mongoose = require("mongoose");
-const {campgroundSchema} = require('./schemas')
+const { campgroundSchema, reviewSchema } = require("./schemas");
 const ejsMate = require("ejs-mate");
 const catchAsync = require("./utils/catchAsync");
 const ExpressError = require("./utils/ExpressError");
 const methodOverride = require("method-override");
 const Campground = require("./models/campground");
+const Review = require("./models/review");
 
 mongoose.connect("mongodb://localhost:27017/campmate", {
   useNewUrlParser: true,
@@ -32,19 +33,25 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-const validateCampground = (req, res, next) =>
-{
-  const { error } = campgroundSchema.validate(req.body)
-  if (error)
-  {
-    const msg = error.details.map(el => el.message).join(',')
-    throw new ExpressError(msg,400)
-  } else
-  {
+const validateCampground = (req, res, next) => {
+  const { error } = campgroundSchema.validate(req.body);
+  if (error) {
+    const msg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(msg, 400);
+  } else {
     next();
   }
-}
+};
 
+const validateReview = (req, res, next) => {
+  const { error } = reviewSchema.validate(req.body);
+  if (error) {
+    const msg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(msg, 400);
+  } else {
+    next();
+  }
+};
 
 app.get("/", (req, res) => {
   res.render("home");
@@ -63,10 +70,9 @@ app.get("/campgrounds/new", (req, res) => {
 });
 
 app.post(
-  "/campgrounds", validateCampground,
-  catchAsync(async (req, res, next) =>
-  {
-    
+  "/campgrounds",
+  validateCampground,
+  catchAsync(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
@@ -93,7 +99,8 @@ app.get(
 
 //put route through methodOverride on form, with POST method
 app.put(
-  "/campgrounds/:id", validateCampground,
+  "/campgrounds/:id",
+  validateCampground,
   catchAsync(async (req, res, next) => {
     const { id } = req.params;
     //find and update by id and spread request body for changes
@@ -113,15 +120,31 @@ app.delete(
   })
 );
 
+app.post(
+  "/campgrounds/:id/reviews",
+  validateReview,
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const campground = await Campground.findById(id);
+    const review = new Review(req.body.review);
+    campground.reviews.push(review);
+
+    await review.save();
+    await campground.save();
+    res.redirect(`/campgrounds/${campground._id}`);
+  })
+);
+
+
 //routes all htttp requests which were not found
 app.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
 });
 
 app.use((err, req, res, next) => {
-    const { statusCode = 500 } = err;
-    if(!err.message) err.message = "Oh No, Something went wrong!"
-  res.status(statusCode).render('error', {err});
+  const { statusCode = 500 } = err;
+  if (!err.message) err.message = "Oh No, Something went wrong!";
+  res.status(statusCode).render("error", { err });
 });
 
 app.listen(3000, () => {
