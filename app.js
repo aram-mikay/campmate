@@ -83,7 +83,7 @@ app.get(
   "/campgrounds/:id",
   catchAsync(async (req, res, next) => {
     const id = req.params.id;
-    const campground = await Campground.findById(id);
+    const campground = await Campground.findById(id).populate("reviews");
     res.render("campgrounds/show", { campground });
   })
 );
@@ -92,7 +92,6 @@ app.get(
   "/campgrounds/:id/edit",
   catchAsync(async (req, res, next) => {
     const id = req.params.id;
-    const campground = await Campground.findById(id);
     res.render("campgrounds/edit", { campground });
   })
 );
@@ -135,6 +134,15 @@ app.post(
   })
 );
 
+app.delete(
+  "/campgrounds/:id/reviews/:reviewId",
+  catchAsync( async (req, res, ) => {
+    const { id, reviewId } = req.params;
+    await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } },{useFindAndModify: false});
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/campgrounds/${id}`);
+  })
+);
 
 //routes all htttp requests which were not found
 app.all("*", (req, res, next) => {
