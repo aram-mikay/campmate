@@ -15,9 +15,12 @@
   </head>
   <body class="d-flex flex-column vh-100">
     <%- include('../partials/navbar') %>
+    
     <!-- injecting content into the body using boilerplate layout from ejsMate -->
-    <main class="container mt-5"><%- body %></main>
-    <%= success %> 
+    <main class="container mt-5">
+      <%- include('../partials/flash') %>
+      <%- body %></main>
+ 
     <%- include('../partials/footer') %>
 
     <script
