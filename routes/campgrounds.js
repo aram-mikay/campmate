@@ -4,6 +4,7 @@ const catchAsync = require("../utils/catchAsync");
 const Campground = require("../models/campground");
 const ExpressError = require("../utils/ExpressError");
 const { campgroundSchema } = require("../schemas");
+const {isLoggedIn} = require('../middleware')
 
 const validateCampground = (req, res, next) => {
   const { error } = campgroundSchema.validate(req.body);
@@ -17,18 +18,19 @@ const validateCampground = (req, res, next) => {
 
 router.get(
   "/",
-  catchAsync(async (req, res, next) => {
+  catchAsync(async (req, res) => {
     const campgrounds = await Campground.find({});
     res.render("campgrounds/index", { campgrounds });
   })
 );
 
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
+  
   res.render("campgrounds/new");
 });
 
 router.post(
-  "/",
+  "/", isLoggedIn,
   validateCampground,
   catchAsync(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
@@ -54,7 +56,7 @@ router.get(
 );
 
 router.get(
-  "/:id/edit",
+  "/:id/edit", isLoggedIn,
   catchAsync(async (req, res, next) => {
     const id = req.params.id;
     const campground = await Campground.findById(id);
@@ -70,6 +72,7 @@ router.get(
 //put route through methodOverride on form, with POST method
 router.put(
   "/:id",
+  isLoggedIn,
   validateCampground,
   catchAsync(async (req, res, next) => {
     const { id } = req.params;
