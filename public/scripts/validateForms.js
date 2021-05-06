@@ -1,6 +1,8 @@
 //for bootstrap form client side validation
 (function () {
-    'use strict'
+  'use strict'
+  
+   bsCustomFileInput.init()
     
     // Fetch all the forms we want to apply custom Bootstrap validation styles to
     var forms = document.querySelectorAll('.validated-form')
