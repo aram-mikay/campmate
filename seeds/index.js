@@ -20,7 +20,7 @@ const sampleData = (arr) => arr[Math.floor(Math.random() * arr.length)];
 //creating dummy seed data to work with
 const seedDB = async () => {
   await Campground.deleteMany({});
-  for (let index = 0; index < 50; index++) {
+  for (let index = 0; index < 400; index++) {
     const random1000 = Math.floor(Math.random() * 1000);
     const price = Math.floor(Math.random() * 20 + 10);
     const camp = new Campground({
@@ -47,7 +47,13 @@ const seedDB = async () => {
       description:
         "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia hic neque sed, vel quae odit aliquam illo perferendis nesciunt obcaecati maxime dicta officia soluta minima pariatur reiciendis nulla adipisci quas facilis, ad voluptatem provident quidem ipsam voluptatum. Inventore rem consectetur aut, odit aspernatur optio, rerum nisi quos magni molestiae nobis.",
       price,
-      geometry: { type: 'Point', coordinates: [ -118.2484, 34.1423 ] },
+      geometry: {
+        type: "Point",
+        coordinates: [
+          cities[random1000].longitude,
+          cities[random1000].latitude,
+        ],
+      },
     });
 
     await camp.save();
