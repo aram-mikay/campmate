@@ -24,7 +24,7 @@ const MongoStore = require("connect-mongo");
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
 const userRoutes = require("./routes/users");
-const dbUrl = "mongodb://localhost:27017/campmate";
+const dbUrl = process.env.DB_URL || "mongodb://localhost:27017/campmate";
 //"mongodb://localhost:27017/campmate"
 mongoose.connect(dbUrl, {
   useNewUrlParser: true,
@@ -47,9 +47,11 @@ app.set("view engine", "ejs");
 //joining our views path to our working directory, establishing an absolute path to views
 app.set("views", path.join(__dirname, "views"));
 
+const secret = process.env.SECRET || "thishsouldbeasecret";
+
 const store = MongoStore.create({
   mongoUrl: dbUrl,
-  secret: "thishsouldbeasecret",
+  secret: secret,
   touchAfter: 24 * 60 * 60,
 });
 
@@ -60,7 +62,7 @@ store.on("error", function (e) {
 const sessionConfig = {
   store,
   name: "session",
-  secret: "thishsouldbeasecret",
+  secret: secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
